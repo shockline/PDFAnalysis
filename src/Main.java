@@ -33,6 +33,8 @@ public class Main {
 	public static Pattern numbericPattern = Pattern.compile("[\\d,\\.]+(\\d|万|亿)元");
 	public static Pattern percentPattern = Pattern.compile("[\\d,\\.]+%");
 	public static Pattern zeroPattern = Pattern.compile("([^\\d])0([^\\d])");
+	public static Pattern dateTimePattern = Pattern
+			.compile("(([0-9]{4})[-/\\.年])(第[一二三四]季度)?[末初前后]?(([01]?[0-9])[-/\\.月])?([0-3]?[0-9]{1}[日])?");
 
 	public static void main(String[] args) throws Exception {
 		String path = System.getProperty("user.dir");
@@ -83,15 +85,18 @@ public class Main {
 						String sentence = sentence0;
 
 						Matcher m = numbericPattern.matcher(sentence);
-						sentence = m.replaceAll(" number ");
+						sentence = m.replaceAll(" numberxx ");
 
 						m = percentPattern.matcher(sentence);
-						sentence = m.replaceAll(" number ");
+						sentence = m.replaceAll(" numberxx ");
 
 						m = zeroPattern.matcher(sentence);
-						sentence = m.replaceAll("$1 number $2");
+						sentence = m.replaceAll("$1 numberxx $2");
+						
+						m = dateTimePattern.matcher(sentence);
+						sentence = m.replaceAll(" timexx ");
 
-						if (!sentence.contains(" number ") && !sentence.contains(" percent "))
+						if (!sentence.contains(" numberxx ") && !sentence.contains(" timexx "))
 							continue;
 
 						flattenList.add(sentence0);
@@ -205,7 +210,7 @@ public class Main {
 			}
 		});
 		System.out.println("Pattern Number: " + fruItemsList.size());
-		
+
 		int outputCount = 0;
 		for (int i = 0; i < fruItemsList.size(); ++i) {
 			String fruItems = fruItemsList.get(listIndex[i]);
