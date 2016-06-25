@@ -73,7 +73,7 @@ public class Main {
 				for (Column column : row) {
 					String columnText = column.getText().replace("\n", "").replace("\r", "");
 
-					StringTokenizer st = new StringTokenizer(columnText, "。");
+					StringTokenizer st = new StringTokenizer(columnText, "，。；");
 					while (st.hasMoreTokens()) {
 						String sentence0 = st.nextToken();
 						sentence0 = sentence0.trim();
@@ -158,7 +158,7 @@ public class Main {
 
 		int minSupport = 2;
 		int gaps = 1;
-		int maxLength = 6;
+		int maxLength = 50;
 
 		String[] args = new String[] { "-i", dataDirAbsPath + "/output/" + toAnalyse.getName(), "-o",
 				dataDirAbsPath + "/output/" + toAnalyse.getName() + ".output", "-s", Integer.toString(minSupport), "-g",
@@ -205,7 +205,7 @@ public class Main {
 			}
 		});
 		System.out.println("Pattern Number: " + fruItemsList.size());
-		
+		System.out.println();
 		int outputCount = 0;
 		for (int i = 0; i < fruItemsList.size(); ++i) {
 			String fruItems = fruItemsList.get(listIndex[i]);
@@ -222,7 +222,7 @@ public class Main {
 				sbPattern.append(nextToken);
 				++totenCount;
 				if (totenCount != tokenTotal) {
-					sb.append("[\\s\\S]{0," + (gaps * maxLength * 3) + "}");
+					sb.append("[\\s\\S]{0," + ((gaps+1) * maxLength * 3) + "}");
 					sbPattern.append("[\\s\\S]*?");
 				}
 			}
@@ -256,19 +256,20 @@ public class Main {
 				// if(sentence.contains("%") || sentence.contains("percent"))
 				// System.out.println("Check!");
 				if (m.find()) {
-					sentenceFw.append(sentence);
-					sentenceFw.append("\n");
+//					sentenceFw.append(sentence);
+//					sentenceFw.append("\n");
 					sentenceFw.append(flattenList.get(countSentence));
 					sentenceFw.append("\n");
 				}
 				++countSentence;
 			}
 			++outputCount;
-			System.out.println(".");
-			if (outputCount % 10 == 0)
+			System.out.print(".");
+			if (outputCount % 100 == 0)
 				System.out.println();
 		}
 		System.out.println();
+		System.out.println(outputCount);
 		fin.close();
 		sentenceFw.close();
 	}
