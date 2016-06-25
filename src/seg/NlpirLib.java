@@ -13,7 +13,7 @@ import com.sun.jna.Native;
 public interface NlpirLib extends Library {
 	// 定义并初始化接口的静态变量，通过JNA调用NLPIR.dll;
 	NlpirLib Instance = (NlpirLib) Native.loadLibrary(
-			"seg/NLPIR/" + OSInfo.getModulePath("NLPIR"), NlpirLib.class);
+			System.getProperty("user.dir") + "/ictdata/NLPIR/" + OSInfo.getModulePath("NLPIR"), NlpirLib.class);
 
 	/**
 	 * 组件初始化
@@ -26,8 +26,7 @@ public interface NlpirLib extends Library {
 	 *            授权码，为空字符串（即：""）就可以了
 	 * @return true：初始化成功；false：初始化失败
 	 */
-	public boolean NLPIR_Init(String sDataPath, int encoding,
-			String sLicenceCode);
+	public boolean NLPIR_Init(String sDataPath, int encoding, String sLicenceCode);
 
 	/**
 	 * 分词
@@ -51,8 +50,7 @@ public interface NlpirLib extends Library {
 	 *            1：显示词性；0：不显示词性
 	 * @return
 	 */
-	public double NLPIR_FileProcess(String sSourceFilename,
-			String sResultFilename, int bPOStagged);
+	public double NLPIR_FileProcess(String sSourceFilename, String sResultFilename, int bPOStagged);
 
 	/**
 	 * 细粒度分词
@@ -74,8 +72,7 @@ public interface NlpirLib extends Library {
 	 *            true：显示词性；false：不显示词性
 	 * @return 关键词组成的字符串 备注：黑名单中出现的词，不会作为关键词出现
 	 */
-	public String NLPIR_GetKeyWords(String sLine, int nMaxKeyLimit,
-			boolean bWeightOut);
+	public String NLPIR_GetKeyWords(String sLine, int nMaxKeyLimit, boolean bWeightOut);
 
 	/**
 	 * 关键词
@@ -88,8 +85,7 @@ public interface NlpirLib extends Library {
 	 *            true：显示词性；false：不显示词性
 	 * @return 关键词组成的字符串 备注：黑名单中出现的词，不会作为关键词出现
 	 */
-	public String NLPIR_GetFileKeyWords(String sFilename, int nMaxKeyLimit,
-			boolean bWeightOut);
+	public String NLPIR_GetFileKeyWords(String sFilename, int nMaxKeyLimit, boolean bWeightOut);
 
 	/**
 	 * 新词
@@ -102,8 +98,7 @@ public interface NlpirLib extends Library {
 	 *            true：显示词性；false：不显示词性
 	 * @return 新词组成的字符串
 	 */
-	public String NLPIR_GetNewWords(String sLine, int nMaxKeyLimit,
-			boolean bWeightOut);
+	public String NLPIR_GetNewWords(String sLine, int nMaxKeyLimit, boolean bWeightOut);
 
 	/**
 	 * 新词
@@ -116,8 +111,7 @@ public interface NlpirLib extends Library {
 	 *            true:显示词性信息；false:不显示词性信息
 	 * @return 新词组成的字符串
 	 */
-	public String NLPIR_GetFileNewWords(String sFilename, int nMaxKeyLimit,
-			boolean bWeightOut);
+	public String NLPIR_GetFileNewWords(String sFilename, int nMaxKeyLimit, boolean bWeightOut);
 
 	/**
 	 * 添加用户自定义词

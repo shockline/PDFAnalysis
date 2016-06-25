@@ -28,7 +28,7 @@ import de.mpii.fsm.driver.FsmDriver;
 public class Main {
 
 	public static Pattern numbericPattern = Pattern.compile("[\\d,\\.]+(\\d|万|亿)元");
-	public static Pattern percentPattern = Pattern.compile("[\\d,\\.]+\\d%");
+	public static Pattern percentPattern = Pattern.compile("[\\d,\\.]%");
 
 	public static void main(String[] args) throws Exception {
 		String path = System.getProperty("user.dir");
