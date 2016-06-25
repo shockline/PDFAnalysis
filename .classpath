@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
+	<classpathentry kind="lib" path="lib/bfopdf-cmap.jar"/>
+	<classpathentry kind="lib" path="lib/bfopdf.jar"/>
+	<classpathentry kind="lib" path="lib/dom4j-1.6.1.jar"/>
+	<classpathentry kind="lib" path="lib/jaxen-1.1.1.jar"/>
+	<classpathentry kind="lib" path="lib/jna-4.0.0.jar"/>
+	<classpathentry kind="lib" path="lib/mgfsm-0.0.1-SNAPSHOT-jar-with-dependencies.jar" sourcepath="lib/mgfsm-0.0.1-SNAPSHOT-jar-with-dependencies"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
