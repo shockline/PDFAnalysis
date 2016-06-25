@@ -74,12 +74,12 @@ public class Main {
 
 					StringTokenizer st = new StringTokenizer(columnText, "。");
 					while (st.hasMoreTokens()) {
-						String sentence = st.nextToken();
-						sentence = sentence.trim();
-						if (sentence.isEmpty())
+						String sentence0 = st.nextToken();
+						sentence0 = sentence0.trim();
+						if (sentence0.isEmpty())
 							continue;
 
-						flattenList.add(sentence);
+						String sentence = sentence0;
 
 						Matcher m = numbericPattern.matcher(sentence);
 						sentence = m.replaceAll(" number ");
@@ -87,6 +87,10 @@ public class Main {
 						m = percentPattern.matcher(sentence);
 						sentence = m.replaceAll(" percent ");
 
+						if (!sentence.contains(" number ") && !sentence.contains(" percent "))
+							continue;
+
+						flattenList.add(sentence0);
 						lt_replaced.add(sentence);
 					}
 				}
@@ -148,14 +152,14 @@ public class Main {
 		seqfw.close();
 		System.out.println(count);
 
-		int minSupport = 100;
+		int minSupport = 12;
 		int gaps = 2;
-		int maxLength = 10;
+		int maxLength = 20;
 
 		String[] args = new String[] { "-i", dataDirAbsPath + "/output/" + toAnalyse.getName(), "-o",
 				dataDirAbsPath + "/output/" + toAnalyse.getName() + ".output", "-s", Integer.toString(minSupport), "-g",
-				Integer.toString(gaps), "-l", Integer.toString(maxLength), "-t", "m", "-m", "d" };
-		FsmDriver.main(args);
+				Integer.toString(gaps), "-l", Integer.toString(maxLength), "-t", "c", "-m", "s" };
+//		FsmDriver.main(args);
 
 		System.out.println("Correspond sentences.");
 		File fruOutputFile = new File(dataDirAbsPath + "/output/" + toAnalyse.getName() + ".output/translatedFS");
@@ -195,7 +199,7 @@ public class Main {
 				return -Integer.compare(patternLengthList.get(o1), patternLengthList.get(o2));
 			}
 		});
-
+		System.out.println("Pattern Number: " + fruItemsList.size());
 		for (int i = 0; i < fruItemsList.size(); ++i) {
 			String fruItems = fruItemsList.get(listIndex[i]);
 			String fruSupString = fruSupStringList.get(listIndex[i]);
@@ -208,7 +212,7 @@ public class Main {
 				sb.append(st.nextToken());
 				++totenCount;
 				if (totenCount != tokenTotal)
-					sb.append("[\\s\\S]{0,2}");
+					sb.append("[\\s\\S]{0," + (gaps * 5) + "}");
 			}
 
 			Pattern regxPattern = Pattern.compile(sb.toString());
@@ -232,7 +236,6 @@ public class Main {
 				}
 				++countSentence;
 			}
-			System.out.print(".");
 		}
 		System.out.println();
 		fin.close();
