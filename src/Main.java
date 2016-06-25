@@ -60,6 +60,10 @@ public class Main {
 
 		List<String> flattenList = new ArrayList<String>();
 		List<String> lt_replaced = new ArrayList<String>();
+
+		File dataDir = new File("data/");
+		String dataDirAbsPath = dataDir.getCanonicalPath();
+
 		for (Table table : lt) {
 			for (Row row : table) {
 				for (Column column : row) {
@@ -92,12 +96,12 @@ public class Main {
 
 		System.out.println("build seq database.");
 
-		File newDir = new File("data/output/" + toAnalyse.getName());
+		File newDir = new File(dataDirAbsPath + "/output/" + toAnalyse.getName());
 		if (!newDir.exists())
 			newDir.mkdirs();
 
 		OutputStreamWriter seqfw = new OutputStreamWriter(
-				new FileOutputStream("data/output/" + toAnalyse.getName() + "/data.txt", false), "utf-8");
+				new FileOutputStream(dataDirAbsPath + "/output/" + toAnalyse.getName() + "/data.txt", false), "utf-8");
 
 		// SequenceDatabase sequenceDatabase = new SequenceDatabase();
 		int count = 0;
@@ -145,25 +149,25 @@ public class Main {
 		int gaps = 2;
 		int maxLength = 10;
 
-		String[] args = new String[] { "-i", "data/output/" + toAnalyse.getName(), "-o",
-				"data/output/" + toAnalyse.getName() + ".output", "-s", Integer.toString(minSupport), "-g",
+		String[] args = new String[] { "-i", dataDirAbsPath + "/output/" + toAnalyse.getName(), "-o",
+				dataDirAbsPath + "/output/" + toAnalyse.getName() + ".output", "-s", Integer.toString(minSupport), "-g",
 				Integer.toString(gaps), "-l", Integer.toString(maxLength), "-t", "c" };
 		FsmDriver.main(args);
 
-		
 		System.out.println("Correspond sentences.");
-		File fruOutputFile = new File("data/output/" + toAnalyse.getName() + ".output/translatedFS");
-		
-		File sentenceCorrespondingOutputFile = new File("data/output/" + toAnalyse.getName() + ".output/sentence");
+		File fruOutputFile = new File(dataDirAbsPath + "/output/" + toAnalyse.getName() + ".output/translatedFS");
+
+		File sentenceCorrespondingOutputFile = new File(
+				dataDirAbsPath + "/output/" + toAnalyse.getName() + ".output/sentence");
 		OutputStreamWriter sentenceFw = new OutputStreamWriter(
 				new FileOutputStream(sentenceCorrespondingOutputFile, false), "utf-8");
-		
+
 		Scanner fin = new Scanner(fruOutputFile);
 		while (fin.hasNextLine()) {
 			String line = fin.nextLine();
 			int tabIndex = line.indexOf('\t');
 			String fruItems = line.substring(0, tabIndex);
-			if(!fruItems.contains("number") && !fruItems.contains("percent"))
+			if (!fruItems.contains("number") && !fruItems.contains("percent"))
 				continue;
 			String fruSupString = line.substring(tabIndex + 1);
 			int fruSup = Integer.parseInt(fruSupString);
@@ -178,15 +182,15 @@ public class Main {
 				if (totenCount != tokenTotal)
 					sb.append("[\\s\\S]{0,2}");
 			}
-			
+
 			Pattern regxPattern = Pattern.compile(sb.toString());
-			
+
 			sentenceFw.append("---------Pattern---------\nPattern: ");
 			sentenceFw.append(fruItems);
 			sentenceFw.append("\n");
 			for (String sentence : lt_replaced) {
 				Matcher m = regxPattern.matcher(sentence);
-				if(m.matches()){
+				if (m.matches()) {
 					sentenceFw.append(sentence);
 					sentenceFw.append("\n");
 				}
