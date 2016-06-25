@@ -3,6 +3,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -145,13 +148,13 @@ public class Main {
 		seqfw.close();
 		System.out.println(count);
 
-		int minSupport = 2;
+		int minSupport = 100;
 		int gaps = 2;
 		int maxLength = 10;
 
 		String[] args = new String[] { "-i", dataDirAbsPath + "/output/" + toAnalyse.getName(), "-o",
 				dataDirAbsPath + "/output/" + toAnalyse.getName() + ".output", "-s", Integer.toString(minSupport), "-g",
-				Integer.toString(gaps), "-l", Integer.toString(maxLength), "-t", "m", "-m", "d" };
+				Integer.toString(gaps), "-l", Integer.toString(maxLength), "-t", "m" };
 		FsmDriver.main(args);
 
 		System.out.println("Correspond sentences.");
@@ -163,6 +166,9 @@ public class Main {
 				new FileOutputStream(sentenceCorrespondingOutputFile, false), "utf-8");
 
 		Scanner fin = new Scanner(fruOutputFile);
+		ArrayList<String> fruItemsList = new ArrayList<String>();
+		ArrayList<String> fruSupStringList = new ArrayList<String>();
+		final ArrayList<Integer> patternLengthList = new ArrayList<Integer>();
 		while (fin.hasNextLine()) {
 			String line = fin.nextLine();
 			int tabIndex = line.indexOf('\t');
@@ -170,9 +176,30 @@ public class Main {
 			if (!fruItems.contains("number") && !fruItems.contains("percent"))
 				continue;
 			String fruSupString = line.substring(tabIndex + 1);
-			int fruSup = Integer.parseInt(fruSupString);
 
-			StringTokenizer st = new StringTokenizer(line, " ");
+			StringTokenizer st = new StringTokenizer(fruItems, " ");
+			int patternLength = st.countTokens();
+
+			fruItemsList.add(fruItems);
+			fruSupStringList.add(fruSupString);
+			patternLengthList.add(patternLength);
+		}
+
+		Integer[] listIndex = new Integer[fruSupStringList.size()];
+		for (int i = 0; i < listIndex.length; ++i)
+			listIndex[i] = i;
+		Arrays.sort(listIndex, new Comparator<Integer>() {
+			@Override
+			public int compare(Integer o1, Integer o2) {
+				return -Integer.compare(patternLengthList.get(o1), patternLengthList.get(o2));
+			}
+		});
+
+		for (int i = 0; i < fruItemsList.size(); ++i) {
+			String fruItems = fruItemsList.get(listIndex[i]);
+			String fruSupString = fruSupStringList.get(listIndex[i]);
+
+			StringTokenizer st = new StringTokenizer(fruItems, " ");
 			int tokenTotal = st.countTokens();
 			int totenCount = 0;
 			StringBuffer sb = new StringBuffer();
@@ -185,15 +212,24 @@ public class Main {
 
 			Pattern regxPattern = Pattern.compile(sb.toString());
 
-			sentenceFw.append("---------Pattern---------\nPattern: ");
+			sentenceFw.append("---------Pattern---------\n");
+			sentenceFw.append("Supprt: ");
+			sentenceFw.append(fruSupString);
+			sentenceFw.append("\nPattern: ");
 			sentenceFw.append(fruItems);
 			sentenceFw.append("\n");
+			int countSentence = 0;
 			for (String sentence : lt_replaced) {
 				Matcher m = regxPattern.matcher(sentence);
-				if (m.matches()) {
+				// if(sentence.contains("%") || sentence.contains("percent"))
+				// System.out.println("Check!");
+				if (m.find()) {
 					sentenceFw.append(sentence);
 					sentenceFw.append("\n");
+					sentenceFw.append(flattenList.get(countSentence));
+					sentenceFw.append("\n");
 				}
+				++countSentence;
 			}
 			System.out.print(".");
 		}
