@@ -28,7 +28,7 @@ import de.mpii.fsm.driver.FsmDriver;
 public class Main {
 
 	public static Pattern numbericPattern = Pattern.compile("[\\d,\\.]+(\\d|万|亿)元");
-	public static Pattern percentPattern = Pattern.compile("[\\d,\\.]%");
+	public static Pattern percentPattern = Pattern.compile("[\\d,\\.]+%");
 
 	public static void main(String[] args) throws Exception {
 		String path = System.getProperty("user.dir");
@@ -79,10 +79,10 @@ public class Main {
 						flattenList.add(sentence);
 
 						Matcher m = numbericPattern.matcher(sentence);
-						sentence = m.replaceAll("number");
+						sentence = m.replaceAll(" number ");
 
 						m = percentPattern.matcher(sentence);
-						sentence = m.replaceAll("percent");
+						sentence = m.replaceAll(" percent ");
 
 						lt_replaced.add(sentence);
 					}
@@ -151,7 +151,7 @@ public class Main {
 
 		String[] args = new String[] { "-i", dataDirAbsPath + "/output/" + toAnalyse.getName(), "-o",
 				dataDirAbsPath + "/output/" + toAnalyse.getName() + ".output", "-s", Integer.toString(minSupport), "-g",
-				Integer.toString(gaps), "-l", Integer.toString(maxLength), "-t", "c" };
+				Integer.toString(gaps), "-l", Integer.toString(maxLength), "-t", "m", "-m", "d" };
 		FsmDriver.main(args);
 
 		System.out.println("Correspond sentences.");
