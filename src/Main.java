@@ -150,6 +150,8 @@ public class Main {
 				Integer.toString(gaps), "-l", Integer.toString(maxLength), "-t", "c" };
 		FsmDriver.main(args);
 
+		
+		System.out.println("Correspond sentences.");
 		File fruOutputFile = new File("data/output/" + toAnalyse.getName() + ".output/translatedFS");
 		
 		File sentenceCorrespondingOutputFile = new File("data/output/" + toAnalyse.getName() + ".output/sentence");
@@ -161,6 +163,8 @@ public class Main {
 			String line = fin.nextLine();
 			int tabIndex = line.indexOf('\t');
 			String fruItems = line.substring(0, tabIndex);
+			if(!fruItems.contains("number") && !fruItems.contains("percent"))
+				continue;
 			String fruSupString = line.substring(tabIndex + 1);
 			int fruSup = Integer.parseInt(fruSupString);
 
@@ -187,8 +191,9 @@ public class Main {
 					sentenceFw.append("\n");
 				}
 			}
+			System.out.print(".");
 		}
-
+		System.out.println();
 		fin.close();
 		sentenceFw.close();
 	}
