@@ -156,7 +156,7 @@ public class Main {
 		seqfw.close();
 		System.out.println(count);
 
-		int minSupport = 2;
+		int minSupport = 12;
 		int gaps = 2;
 		int maxLength = 20;
 
@@ -205,7 +205,8 @@ public class Main {
 			}
 		});
 		System.out.println("Pattern Number: " + fruItemsList.size());
-
+		
+		int outputCount = 0;
 		for (int i = 0; i < fruItemsList.size(); ++i) {
 			String fruItems = fruItemsList.get(listIndex[i]);
 			String fruSupString = fruSupStringList.get(listIndex[i]);
@@ -262,8 +263,9 @@ public class Main {
 				}
 				++countSentence;
 			}
+			++outputCount;
 			System.out.println(".");
-			if (i % 10 == 0)
+			if (outputCount % 10 == 0)
 				System.out.println();
 		}
 		System.out.println();
