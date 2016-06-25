@@ -140,53 +140,15 @@ public class Main {
 		seqfw.close();
 		System.out.println(count);
 
+		int minSupport = 2;
+		int gaps = 2;
+		int maxLength = 100;
+
 		String[] args = new String[] { "-i", "data/output/" + toAnalyse.getName(), "-o",
-				"data/output/" + toAnalyse.getName() + ".output", "-s", "2", "-g", "100", "-l", "3" };
+				"data/output/" + toAnalyse.getName() + ".output", "-s", Integer.toString(minSupport), "-g",
+				Integer.toString(gaps), "-l", Integer.toString(maxLength), "-t", "c"};
 		FsmDriver.main(args);
 
-		// System.out.println("fruquent analyse.");
-		// int minsup = 2;
-		// boolean showsid = true;
-		// MaxSP algo = new MaxSP();
-		// algo.setShowSequenceIdentifiers(showsid);
-		//
-		// // execute the algorithm
-		// SequentialPatterns sps = algo.runAlgorithm(sequenceDatabase, null,
-		// minsup);
-		// algo.printStatistics(sequenceDatabase.size());
-		//
-		// OutputStreamWriter fw = new OutputStreamWriter(new FileOutputStream(
-		// "data/output/" + toAnalyse.getName() + ".fru", false), "GBK");
-		// List<List<SequentialPattern>> lls = sps.getLevels();
-		// lls = lls.subList(2, lls.size());
-		// for (int i = lls.size() - 1; i >= 2; --i) {
-		// List<SequentialPattern> spl = lls.get(i);
-		// for (SequentialPattern sp : spl) {
-		// fw.append("Pattern: ");
-		// for (Itemset itemSet : sp.getItemsets()) {
-		// // System.out.print("(");
-		// for (Integer item : itemSet.getItems()) {
-		// System.out.print(inverseDic.get(item));
-		// System.out.print(",");
-		// fw.append(inverseDic.get(item));
-		// fw.append(",");
-		// }
-		// // System.out.print("),");
-		// }
-		// System.out.println();
-		// fw.append("\n");
-		// Set<Integer> seqIds = sp.getSequenceIDs();
-		// for (Integer id : seqIds) {
-		// System.out.println(lt_replaced.get(id));
-		// fw.append(lt_replaced.get(id));
-		// fw.append("\n");
-		// }
-		// System.out.println("---------------------------");
-		// fw.append("---------------------------\n");
-		// }
-		// }
-		// fw.close();
-		// System.out.println("All finished!");
 	}
 
 }
