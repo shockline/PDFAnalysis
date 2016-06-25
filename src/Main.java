@@ -154,12 +154,13 @@ public class Main {
 
 		String[] args = new String[] { "-i", dataDirAbsPath + "/output/" + toAnalyse.getName(), "-o",
 				dataDirAbsPath + "/output/" + toAnalyse.getName() + ".output", "-s", Integer.toString(minSupport), "-g",
-				Integer.toString(gaps), "-l", Integer.toString(maxLength), "-t", "m" };
+				Integer.toString(gaps), "-l", Integer.toString(maxLength), "-t", "m", "-m", "d" };
 		FsmDriver.main(args);
 
 		System.out.println("Correspond sentences.");
 		File fruOutputFile = new File(dataDirAbsPath + "/output/" + toAnalyse.getName() + ".output/translatedFS");
-
+		if (fruOutputFile.isDirectory())
+			fruOutputFile = new File(fruOutputFile, "part-r-00000");
 		File sentenceCorrespondingOutputFile = new File(
 				dataDirAbsPath + "/output/" + toAnalyse.getName() + ".output/sentence");
 		OutputStreamWriter sentenceFw = new OutputStreamWriter(

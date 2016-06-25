@@ -151,16 +151,14 @@ public class Analyser {
 			last2RightScope = 0.0f;
 
 			// ///////////////////////
-			System.out.println(lastText.getText() + "|" + lastText.getCorners()[0] + "|" + lastText.getCorners()[1]
-					+ "|" + lastText.getCorners()[4] + "|" + lastText.getCorners()[5] + "|");
+//			System.out.println(lastText.getText() + "|" + lastText.getCorners()[0] + "|" + lastText.getCorners()[1]
+//					+ "|" + lastText.getCorners()[4] + "|" + lastText.getCorners()[5] + "|");
 			// //////////////////////
 			
 			iLabel: while (iter.hasNext()) {
 				curText = iter.next();
-				System.out.println(curText.getText() + "|" + curText.getCorners()[0] + "|" + curText.getCorners()[1]
-						+ "|" + curText.getCorners()[4] + "|" + curText.getCorners()[5] + "|");
-				if(curText.getText().contains("可能出现债券违约"))
-					System.out.println("Check");
+//				System.out.println(curText.getText() + "|" + curText.getCorners()[0] + "|" + curText.getCorners()[1]
+//						+ "|" + curText.getCorners()[4] + "|" + curText.getCorners()[5] + "|");
 
 				DfaAlpha alpha;
 				if (curText.getCorners()[3] < lastText.getCorners()[1]
@@ -208,7 +206,7 @@ public class Analyser {
 		}
 
 		private boolean guide(DfaState mystate, DfaAlpha myalpha) {
-			System.out.println(mystate + " " + myalpha);
+//			System.out.println(mystate + " " + myalpha);
 			switch (mystate) {
 			case INLINE_STATE:
 				switch (myalpha) {
