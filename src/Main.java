@@ -92,7 +92,7 @@ public class Main {
 
 						m = zeroPattern.matcher(sentence);
 						sentence = m.replaceAll("$1 numberxx $2");
-						
+
 						m = dateTimePattern.matcher(sentence);
 						sentence = m.replaceAll(" timexx ");
 
@@ -131,6 +131,9 @@ public class Main {
 			while (st.hasMoreTokens()) {
 				++i;
 				String chString = st.nextToken();
+				chString = chString.replace("*", "\\*").replace("&", "\\&").replace("\\", "\\\\").replace("-", "\\-")
+						.replace("+", "\\+").replace("?", "\\?").replace("[", "\\[").replace("]", "\\]")
+						.replace("(", "\\(").replace(")", "\\)").replace("{", "\\{").replace("}", "\\}");
 				int value = -1;
 				if (dic.containsKey(chString))
 					value = dic.get(chString);
@@ -227,7 +230,7 @@ public class Main {
 				sbPattern.append(nextToken);
 				++totenCount;
 				if (totenCount != tokenTotal) {
-					sb.append("[\\s\\S]{0," + ((gaps+1) * maxLength * 3) + "}");
+					sb.append("[\\s\\S]{0," + ((gaps + 1) * maxLength * 3) + "}");
 					sbPattern.append("[\\s\\S]*?");
 				}
 			}
@@ -261,8 +264,8 @@ public class Main {
 				// if(sentence.contains("%") || sentence.contains("percent"))
 				// System.out.println("Check!");
 				if (m.find()) {
-//					sentenceFw.append(sentence);
-//					sentenceFw.append("\n");
+					// sentenceFw.append(sentence);
+					// sentenceFw.append("\n");
 					sentenceFw.append(flattenList.get(countSentence));
 					sentenceFw.append("\n");
 				}
