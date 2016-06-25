@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
@@ -142,13 +143,54 @@ public class Main {
 
 		int minSupport = 2;
 		int gaps = 2;
-		int maxLength = 100;
+		int maxLength = 10;
 
 		String[] args = new String[] { "-i", "data/output/" + toAnalyse.getName(), "-o",
 				"data/output/" + toAnalyse.getName() + ".output", "-s", Integer.toString(minSupport), "-g",
-				Integer.toString(gaps), "-l", Integer.toString(maxLength), "-t", "c"};
+				Integer.toString(gaps), "-l", Integer.toString(maxLength), "-t", "c" };
 		FsmDriver.main(args);
 
+		File fruOutputFile = new File("data/output/" + toAnalyse.getName() + ".output/translatedFS");
+		
+		File sentenceCorrespondingOutputFile = new File("data/output/" + toAnalyse.getName() + ".output/sentence");
+		OutputStreamWriter sentenceFw = new OutputStreamWriter(
+				new FileOutputStream(sentenceCorrespondingOutputFile, false), "utf-8");
+		
+		Scanner fin = new Scanner(fruOutputFile);
+		while (fin.hasNextLine()) {
+			String line = fin.nextLine();
+			int tabIndex = line.indexOf('\t');
+			String fruItems = line.substring(0, tabIndex);
+			String fruSupString = line.substring(tabIndex + 1);
+			int fruSup = Integer.parseInt(fruSupString);
+
+			StringTokenizer st = new StringTokenizer(line, " ");
+			int tokenTotal = st.countTokens();
+			int totenCount = 0;
+			StringBuffer sb = new StringBuffer();
+			while (st.hasMoreTokens()) {
+				sb.append(st.nextToken());
+				++totenCount;
+				if (totenCount != tokenTotal)
+					sb.append("[\\s\\S]{0,2}");
+			}
+			
+			Pattern regxPattern = Pattern.compile(sb.toString());
+			
+			sentenceFw.append("---------Pattern---------\nPattern: ");
+			sentenceFw.append(fruItems);
+			sentenceFw.append("\n");
+			for (String sentence : lt_replaced) {
+				Matcher m = regxPattern.matcher(sentence);
+				if(m.matches()){
+					sentenceFw.append(sentence);
+					sentenceFw.append("\n");
+				}
+			}
+		}
+
+		fin.close();
+		sentenceFw.close();
 	}
 
 }
