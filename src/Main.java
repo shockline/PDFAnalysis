@@ -32,6 +32,7 @@ public class Main {
 
 	public static Pattern numbericPattern = Pattern.compile("[\\d,\\.]+(\\d|万|亿)元");
 	public static Pattern percentPattern = Pattern.compile("[\\d,\\.]+%");
+	public static Pattern zeroPattern = Pattern.compile("([^\\d])0([^\\d])");
 
 	public static void main(String[] args) throws Exception {
 		String path = System.getProperty("user.dir");
@@ -85,7 +86,10 @@ public class Main {
 						sentence = m.replaceAll(" number ");
 
 						m = percentPattern.matcher(sentence);
-						sentence = m.replaceAll(" percent ");
+						sentence = m.replaceAll(" number ");
+
+						m = zeroPattern.matcher(sentence);
+						sentence = m.replaceAll("$1 number $2");
 
 						if (!sentence.contains(" number ") && !sentence.contains(" percent "))
 							continue;
@@ -152,14 +156,14 @@ public class Main {
 		seqfw.close();
 		System.out.println(count);
 
-		int minSupport = 12;
+		int minSupport = 2;
 		int gaps = 2;
 		int maxLength = 20;
 
 		String[] args = new String[] { "-i", dataDirAbsPath + "/output/" + toAnalyse.getName(), "-o",
 				dataDirAbsPath + "/output/" + toAnalyse.getName() + ".output", "-s", Integer.toString(minSupport), "-g",
-				Integer.toString(gaps), "-l", Integer.toString(maxLength), "-t", "c", "-m", "s" };
-//		FsmDriver.main(args);
+				Integer.toString(gaps), "-l", Integer.toString(maxLength), "-t", "m", "-m", "s" };
+		FsmDriver.main(args);
 
 		System.out.println("Correspond sentences.");
 		File fruOutputFile = new File(dataDirAbsPath + "/output/" + toAnalyse.getName() + ".output/translatedFS");
@@ -191,6 +195,7 @@ public class Main {
 		}
 
 		Integer[] listIndex = new Integer[fruSupStringList.size()];
+		boolean[] validList = new boolean[fruSupStringList.size()];
 		for (int i = 0; i < listIndex.length; ++i)
 			listIndex[i] = i;
 		Arrays.sort(listIndex, new Comparator<Integer>() {
@@ -200,6 +205,7 @@ public class Main {
 			}
 		});
 		System.out.println("Pattern Number: " + fruItemsList.size());
+
 		for (int i = 0; i < fruItemsList.size(); ++i) {
 			String fruItems = fruItemsList.get(listIndex[i]);
 			String fruSupString = fruSupStringList.get(listIndex[i]);
@@ -208,14 +214,34 @@ public class Main {
 			int tokenTotal = st.countTokens();
 			int totenCount = 0;
 			StringBuffer sb = new StringBuffer();
+			StringBuffer sbPattern = new StringBuffer();
 			while (st.hasMoreTokens()) {
-				sb.append(st.nextToken());
+				String nextToken = st.nextToken();
+				sb.append(nextToken);
+				sbPattern.append(nextToken);
 				++totenCount;
-				if (totenCount != tokenTotal)
+				if (totenCount != tokenTotal) {
 					sb.append("[\\s\\S]{0," + (gaps * 5) + "}");
+					sbPattern.append("[\\s\\S]*?");
+				}
 			}
 
 			Pattern regxPattern = Pattern.compile(sb.toString());
+			Pattern regxCorsPattern = Pattern.compile(sbPattern.toString());
+			boolean flag = false;
+			for (int j = 0; j < i; ++j) {
+				if (validList[listIndex[j]])
+					continue;
+				String fCors = fruItemsList.get(listIndex[j]);
+				Matcher mp = regxCorsPattern.matcher(fCors);
+				if (mp.find()) {
+					flag = true;
+					validList[listIndex[i]] = true;
+					break;
+				}
+			}
+			if (flag)
+				continue;
 
 			sentenceFw.append("---------Pattern---------\n");
 			sentenceFw.append("Supprt: ");
@@ -236,6 +262,9 @@ public class Main {
 				}
 				++countSentence;
 			}
+			System.out.println(".");
+			if (i % 10 == 0)
+				System.out.println();
 		}
 		System.out.println();
 		fin.close();
