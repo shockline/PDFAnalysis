@@ -156,9 +156,9 @@ public class Main {
 		seqfw.close();
 		System.out.println(count);
 
-		int minSupport = 12;
-		int gaps = 2;
-		int maxLength = 20;
+		int minSupport = 2;
+		int gaps = 1;
+		int maxLength = 6;
 
 		String[] args = new String[] { "-i", dataDirAbsPath + "/output/" + toAnalyse.getName(), "-o",
 				dataDirAbsPath + "/output/" + toAnalyse.getName() + ".output", "-s", Integer.toString(minSupport), "-g",
@@ -222,7 +222,7 @@ public class Main {
 				sbPattern.append(nextToken);
 				++totenCount;
 				if (totenCount != tokenTotal) {
-					sb.append("[\\s\\S]{0," + (gaps * 5) + "}");
+					sb.append("[\\s\\S]{0," + (gaps * maxLength * 3) + "}");
 					sbPattern.append("[\\s\\S]*?");
 				}
 			}
