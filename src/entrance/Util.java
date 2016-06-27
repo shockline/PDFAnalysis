@@ -1,25 +1,20 @@
+package entrance;
+
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import maxsp.Itemset;
-import maxsp.MaxSP;
-import maxsp.SequenceDatabase;
-import maxsp.SequentialPattern;
-import maxsp.SequentialPatterns;
 import seg.NlpirLib;
 import seg.NlpirMethod;
 import analyser.Analyser;
@@ -28,7 +23,7 @@ import analyser.layout.Row;
 import analyser.layout.Table;
 import de.mpii.fsm.driver.FsmDriver;
 
-public class Main {
+public class Util {
 
 	public static Pattern numbericPattern = Pattern.compile("[\\d,\\.]+(\\d|万|亿)元");
 	public static Pattern percentPattern = Pattern.compile("[\\d,\\.]+%");
@@ -36,7 +31,7 @@ public class Main {
 	public static Pattern dateTimePattern = Pattern
 			.compile("(([0-9]{4})[-/\\.年])(第[一二三四]季度)?[末初前后]?(([01]?[0-9])[-/\\.月])?([0-3]?[0-9]{1}[日])?");
 
-	public static void main(String[] args) throws Exception {
+	static {
 		String path = System.getProperty("user.dir");
 		boolean flag = NlpirMethod.NLPIR_Init(path + "/ictdata", 1, "");
 
@@ -46,18 +41,6 @@ public class Main {
 			System.out.println("nlpir初始化失败：" + NlpirLib.Instance.NLPIR_GetLastErrorMsg());
 			System.exit(1);
 		}
-
-		// String[] fileList = new String[] {
-		// "data/input/京东世纪贸易公司债募集说明书（反馈回复稿）-瑞银证券.pdf",
-		// "data/input/1 保利房地产（集团）股份有限公司公开发行2016 年公司债券（第二期）募集说明书.pdf",
-		// "data/input/北新建材公司债募集说明书-中信证券.pdf",
-		// "data/input/中海地产公司债募集说明书-中信证券.pdf" };
-		String[] fileList = new String[] { "data/input/京东世纪贸易公司债募集说明书（反馈回复稿）-瑞银证券.pdf" };
-		for (String fileString : fileList) {
-			File toAnalyse = new File(fileString);
-			analyse(toAnalyse);
-		}
-		System.out.println("All finished!");
 	}
 
 	public static void analyse(File toAnalyse) throws Exception {
@@ -163,58 +146,30 @@ public class Main {
 		}
 		seqfw.close();
 		System.out.println(count);
-
 		int minSupport = 2;
 		int gaps = 1;
 		int maxLength = 50;
 
-		String[] args = new String[] { "-i", dataDirAbsPath + "/output/" + toAnalyse.getName(), "-o",
-				dataDirAbsPath + "/output/" + toAnalyse.getName() + ".output", "-s", Integer.toString(minSupport), "-g",
-				Integer.toString(gaps), "-l", Integer.toString(maxLength), "-t", "m", "-m", "s" };
-		FsmDriver.main(args);
-
-		System.out.println("Correspond sentences.");
+		String inputFilename = dataDirAbsPath + "/output/" + toAnalyse.getName();
+		String outputFilename = dataDirAbsPath + "/output/" + toAnalyse.getName() + ".output";
+		
+		patternGenerator(inputFilename, outputFilename, minSupport, gaps, maxLength);
+		
 		File fruOutputFile = new File(dataDirAbsPath + "/output/" + toAnalyse.getName() + ".output/translatedFS");
-		if (fruOutputFile.isDirectory())
-			fruOutputFile = new File(fruOutputFile, "part-r-00000");
+
+		Object[] res = patternFilter(fruOutputFile);
+
+		Integer[] listIndex = (Integer[]) res[0];
+		ArrayList<String> fruItemsList = (ArrayList<String>) res[1];
+		ArrayList<String> fruSupStringList = (ArrayList<String>) res[2];
+		final ArrayList<Integer> patternLengthList = (ArrayList<Integer>) res[3];
+
 		File sentenceCorrespondingOutputFile = new File(
 				dataDirAbsPath + "/output/" + toAnalyse.getName() + ".output/sentence");
 		OutputStreamWriter sentenceFw = new OutputStreamWriter(
 				new FileOutputStream(sentenceCorrespondingOutputFile, false), "utf-8");
-
-		Scanner fin = new Scanner(fruOutputFile);
-		ArrayList<String> fruItemsList = new ArrayList<String>();
-		ArrayList<String> fruSupStringList = new ArrayList<String>();
-		final ArrayList<Integer> patternLengthList = new ArrayList<Integer>();
-		while (fin.hasNextLine()) {
-			String line = fin.nextLine();
-			int tabIndex = line.indexOf('\t');
-			String fruItems = line.substring(0, tabIndex);
-			if (!fruItems.contains("number") && !fruItems.contains("percent"))
-				continue;
-			String fruSupString = line.substring(tabIndex + 1);
-
-			StringTokenizer st = new StringTokenizer(fruItems, " ");
-			int patternLength = st.countTokens();
-
-			fruItemsList.add(fruItems);
-			fruSupStringList.add(fruSupString);
-			patternLengthList.add(patternLength);
-		}
-
-		Integer[] listIndex = new Integer[fruSupStringList.size()];
-		boolean[] validList = new boolean[fruSupStringList.size()];
-		for (int i = 0; i < listIndex.length; ++i)
-			listIndex[i] = i;
-		Arrays.sort(listIndex, new Comparator<Integer>() {
-			@Override
-			public int compare(Integer o1, Integer o2) {
-				return -Integer.compare(patternLengthList.get(o1), patternLengthList.get(o2));
-			}
-		});
-		System.out.println("Pattern Number: " + fruItemsList.size());
-		System.out.println();
 		int outputCount = 0;
+		boolean[] validList = new boolean[fruSupStringList.size()];
 		for (int i = 0; i < fruItemsList.size(); ++i) {
 			String fruItems = fruItemsList.get(listIndex[i]);
 			String fruSupString = fruSupStringList.get(listIndex[i]);
@@ -278,8 +233,56 @@ public class Main {
 		}
 		System.out.println();
 		System.out.println(outputCount);
-		fin.close();
+
 		sentenceFw.close();
+	}
+
+	public static void patternGenerator(String inputFile, String outputFile, int minSupport, int gaps, int maxLength)
+			throws Exception {
+		String[] args = new String[] { "-i", inputFile, "-o", outputFile, "-s", Integer.toString(minSupport), "-g",
+				Integer.toString(gaps), "-l", Integer.toString(maxLength), "-t", "m", "-m", "s" };
+		FsmDriver.main(args);
+	}
+
+	public static Object[] patternFilter(File fruOutputFile) throws FileNotFoundException {
+		System.out.println("Correspond sentences.");
+		if (fruOutputFile.isDirectory())
+			fruOutputFile = new File(fruOutputFile, "part-r-00000");
+
+		Scanner fin = new Scanner(fruOutputFile);
+		ArrayList<String> fruItemsList = new ArrayList<String>();
+		ArrayList<String> fruSupStringList = new ArrayList<String>();
+		final ArrayList<Integer> patternLengthList = new ArrayList<Integer>();
+		while (fin.hasNextLine()) {
+			String line = fin.nextLine();
+			int tabIndex = line.indexOf('\t');
+			String fruItems = line.substring(0, tabIndex);
+			if (!fruItems.contains("numberxx") && !fruItems.contains("timexx"))
+				continue;
+			String fruSupString = line.substring(tabIndex + 1);
+
+			StringTokenizer st = new StringTokenizer(fruItems, " ");
+			int patternLength = st.countTokens();
+
+			fruItemsList.add(fruItems);
+			fruSupStringList.add(fruSupString);
+			patternLengthList.add(patternLength);
+		}
+
+		Integer[] listIndex = new Integer[fruSupStringList.size()];
+		for (int i = 0; i < listIndex.length; ++i)
+			listIndex[i] = i;
+		Arrays.sort(listIndex, new Comparator<Integer>() {
+			@Override
+			public int compare(Integer o1, Integer o2) {
+				return -Integer.compare(patternLengthList.get(o1), patternLengthList.get(o2));
+			}
+		});
+		fin.close();
+		System.out.println("Pattern Number: " + fruItemsList.size());
+		System.out.println();
+
+		return new Object[] { listIndex, fruItemsList, fruSupStringList, patternLengthList };
 	}
 
 }
