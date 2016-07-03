@@ -1,0 +1,124 @@
+package de.mpii.fsm.mgfsm.maximal;
+
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.apache.hadoop.io.BytesWritable;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.mapreduce.Mapper;
+
+import de.mpii.fsm.util.IntArrayWritable;
+
+
+/**
+ * @author kbeedkar(kbeedkar@mpi-inf.mpg.de)
+ *
+ */
+public class MaxFsmMapper extends Mapper<IntArrayWritable, LongWritable, BytesWritable, LongWritable> {
+  int pivot;
+  int length;
+  int support;
+  int[] sequence;
+  
+  ByteSequence subSequence = new ByteSequence();
+
+  BytesWritable newKey = new BytesWritable();
+  LongWritable newValue = new LongWritable();
+
+  public void map(IntArrayWritable key, LongWritable value, Context context) throws IOException, InterruptedException {
+    sequence = key.getContents();
+    length = sequence.length;
+    support = (int) value.get();
+    
+    newValue.set(MaxUtils.combine(support,length));
+    
+    ArrayList<int[]> subs = combntns(sequence);
+    for(int[] sub : subs){
+    	for(int x : sub){
+    		subSequence.add(x);
+    	}
+    	emitSubsequence(context);
+    }
+    
+//    pivot = sequence[0];
+//    for (int offset = 1; offset < length; ++offset) {
+//      if (sequence[offset] > pivot) {
+//        pivot = sequence[offset];
+//      }
+//    }
+//    for (int offset = 0; offset < length; ++offset) {
+//      if (sequence[offset] == pivot) {
+//        if (!subSequence.isEmpty()) {
+//          emitSubSequence(context);
+//        }
+//        continue;
+//      }
+//      emitItem(sequence[offset], context);
+//      subSequence.add(sequence[offset]);
+//    }
+//    if (!subSequence.isEmpty()) {
+//      emitSubSequence(context);
+//    }
+//    emitItem(pivot,context);
+//    emitSequence(context);
+  }
+
+  public void emitItem(int item, Context context) throws IOException, InterruptedException {
+    ByteSequence.encode(new int[]{item}, newKey);
+    context.write(newKey, newValue);
+  }
+  
+  public void emitSequence(Context context) throws IOException, InterruptedException {
+    ByteSequence.encode(sequence, newKey);
+    context.write(newKey, newValue);
+  }
+
+  public void emitSubSequence(Context context) throws IOException, InterruptedException {
+    newKey.set(subSequence.get());
+    context.write(newKey, newValue);
+    subSequence.clear();
+  }
+  
+  public ArrayList<int[]> combntns(int[] sequence) {
+		// TODO Auto-generated method stub
+		ArrayList<int[]> result = new ArrayList<int[]>();
+		for(int i = 1; i <= sequence.length; i++){
+			result.addAll(combs(sequence, i));
+		}
+		return result;
+	}
+  
+  public ArrayList<int[]> combs(int[] sequence, int m) {
+      // TODO Auto-generated method stub
+      ArrayList<int[]> P = new ArrayList<int[]>();
+      int n = sequence.length;
+      if (n == m) {
+          P.add(sequence);
+      } else if (m == 1) {
+          for (int item : sequence) {
+              P.add(new int[]{item});
+          }
+      } else if (n > m && m != 1) {
+          ArrayList<int[]> Q = null;
+          for (int k = 0; k <= n - m; k++) {
+              int[] sub = Arrays.copyOfRange(sequence, k+1, sequence.length);
+              Q = combs(sub, m - 1);
+              for (int index = 0; index < Q.size(); index++) {
+                  int prefix = sequence[k];
+                  int[] tmp = new int[m];
+                  tmp[0] = prefix;
+                  int[] tmpArray = Q.get(index);
+                  for(int i = 0;i < tmpArray.length; i++){
+                      tmp[i+1] = tmpArray[i];
+                  		}
+                  Q.set(index, tmp);
+              	   }
+              P.addAll(Q);
+          	}
+      }
+    return P;
+  }
+}

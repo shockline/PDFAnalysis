@@ -3,6 +3,7 @@ package entrance;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -14,6 +15,13 @@ import java.util.Scanner;
 import java.util.StringTokenizer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 
 import seg.NlpirLib;
 import seg.NlpirMethod;
@@ -43,7 +51,7 @@ public class Util {
 		}
 	}
 
-	public static void analyse(File toAnalyse) throws Exception {
+	public static void analyse(File toAnalyse, String mode) throws Exception {
 		Analyser a = new Analyser();
 		List<Table> lt = a.analyse(toAnalyse);
 
@@ -147,14 +155,14 @@ public class Util {
 		seqfw.close();
 		System.out.println(count);
 		int minSupport = 2;
-		int gaps = 1;
+		int gaps = 0;
 		int maxLength = 50;
 
-		String inputFilename = dataDirAbsPath + "/output/" + toAnalyse.getName();
-		String outputFilename = dataDirAbsPath + "/output/" + toAnalyse.getName() + ".output";
-		
-		patternGenerator(inputFilename, outputFilename, minSupport, gaps, maxLength);
-		
+		String inputFilename = dataDirAbsPath + "/output/" + toAnalyse.getName() + "/data.txt";
+		String outputFilename = dataDirAbsPath + "/output/" + toAnalyse.getName() + ".output/";
+
+		patternGenerator(inputFilename, outputFilename, minSupport, gaps, maxLength, mode);
+
 		File fruOutputFile = new File(dataDirAbsPath + "/output/" + toAnalyse.getName() + ".output/translatedFS");
 
 		Object[] res = patternFilter(fruOutputFile);
@@ -237,11 +245,85 @@ public class Util {
 		sentenceFw.close();
 	}
 
-	public static void patternGenerator(String inputFile, String outputFile, int minSupport, int gaps, int maxLength)
-			throws Exception {
-		String[] args = new String[] { "-i", inputFile, "-o", outputFile, "-s", Integer.toString(minSupport), "-g",
-				Integer.toString(gaps), "-l", Integer.toString(maxLength), "-t", "m", "-m", "s" };
-		FsmDriver.main(args);
+	public static void patternGenerator(String inputFile, String outputFile, int minSupport, int gaps, int maxLength,
+			String mode) throws Exception {
+		if ("s".equals(mode)) {
+			String[] args = new String[] { "-i", inputFile, "-o", outputFile, "-s", Integer.toString(minSupport), "-g",
+					Integer.toString(gaps), "-l", Integer.toString(maxLength), "-t", "m", "-m", "s" };
+			FsmDriver.main(args);
+		} else {
+			File inputF = new File(inputFile);
+			sendFile("/pdftemp/" + inputFile, inputFile);
+			String[] args = new String[] { "-i", "/pdftemp/" + inputF, "-o", "/pdftemp/" + inputF + ".output", "-s",
+					Integer.toString(minSupport), "-g", Integer.toString(gaps), "-l", Integer.toString(maxLength), "-t",
+					"m", "-m", "d" };
+			 FsmDriver.main(args);
+
+			File outputF = new File(outputFile + "/translatedFS");
+			if (outputF.exists())
+				outputF.delete();
+			// String cmd = "hadoop fs -get \"" + "/pdftemp/" + inputF +
+			// ".output/*\" \"" + outputFile + "\"";
+			// Runtime.getRuntime().exec(cmd);
+			downloadFile("/pdftemp/" + inputF + ".output/translatedFS/part-r-00000", outputFile + "/translatedFS");
+		}
+
+	}
+
+	public static boolean downloadFile(String hadfile, String localPath) {
+		try {
+			Configuration conf = new Configuration();
+			FileSystem localFS = FileSystem.getLocal(conf);
+			FileSystem hadoopFS = FileSystem.get(conf);
+			Path hadPath = new Path(hadfile);
+			FSDataOutputStream fsOut = localFS.create(new Path(localPath));
+			FSDataInputStream fsIn = hadoopFS.open(hadPath);
+			byte[] buf = new byte[1024];
+			int readbytes = 0;
+			while ((readbytes = fsIn.read(buf)) > 0) {
+				fsOut.write(buf, 0, readbytes);
+			}
+			fsIn.close();
+			fsOut.close();
+
+			return true;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	public static boolean sendFile(String path, String localfile) {
+		Configuration conf = new Configuration();
+		File file = new File(localfile);
+		if (!file.isFile()) {
+			System.out.println(file.getName());
+			return false;
+		}
+		try {
+			FileSystem localFS = FileSystem.getLocal(conf);
+			FileSystem hadoopFS = FileSystem.get(conf);
+			Path hadPath = new Path(path);
+			hadoopFS.delete(new Path(path + "/" + file.getName()), true);
+			FSDataOutputStream fsOut = hadoopFS.create(new Path(path + "/" + file.getName()), true);
+			FSDataInputStream fsIn = localFS.open(new Path(localfile));
+			byte[] buf = new byte[1024];
+			int readbytes = 0;
+			while ((readbytes = fsIn.read(buf)) > 0) {
+				fsOut.write(buf, 0, readbytes);
+			}
+			fsIn.close();
+			fsOut.close();
+
+			FileStatus[] hadfiles = hadoopFS.listStatus(hadPath);
+			for (FileStatus fs : hadfiles) {
+				System.out.println(fs.toString());
+			}
+			return true;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return false;
 	}
 
 	public static Object[] patternFilter(File fruOutputFile) throws FileNotFoundException {
@@ -250,7 +332,7 @@ public class Util {
 			fruOutputFile = new File(fruOutputFile, "part-r-00000");
 
 		Scanner fin = new Scanner(fruOutputFile);
-		ArrayList<String> fruItemsList = new ArrayList<String>();
+		final ArrayList<String> fruItemsList = new ArrayList<String>();
 		ArrayList<String> fruSupStringList = new ArrayList<String>();
 		final ArrayList<Integer> patternLengthList = new ArrayList<Integer>();
 		while (fin.hasNextLine()) {
@@ -275,7 +357,11 @@ public class Util {
 		Arrays.sort(listIndex, new Comparator<Integer>() {
 			@Override
 			public int compare(Integer o1, Integer o2) {
-				return -Integer.compare(patternLengthList.get(o1), patternLengthList.get(o2));
+				int c = -Integer.compare(patternLengthList.get(o1), patternLengthList.get(o2));
+				if (c == 0)
+					return fruItemsList.get(o1).compareTo(fruItemsList.get(o2));
+				else
+					return c;
 			}
 		});
 		fin.close();
