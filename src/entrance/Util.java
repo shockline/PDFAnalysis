@@ -155,7 +155,7 @@ public class Util {
 		seqfw.close();
 		System.out.println(count);
 		int minSupport = 2;
-		int gaps = 0;
+		int gaps = 1;
 		int maxLength = 50;
 
 		String inputFilename = dataDirAbsPath + "/output/" + toAnalyse.getName() + "/data.txt";
@@ -199,21 +199,21 @@ public class Util {
 			}
 
 			Pattern regxPattern = Pattern.compile(sb.toString());
-			Pattern regxCorsPattern = Pattern.compile(sbPattern.toString());
-			boolean flag = false;
-			for (int j = 0; j < i; ++j) {
-				if (validList[listIndex[j]])
-					continue;
-				String fCors = fruItemsList.get(listIndex[j]);
-				Matcher mp = regxCorsPattern.matcher(fCors);
-				if (mp.find()) {
-					flag = true;
-					validList[listIndex[i]] = true;
-					break;
-				}
-			}
-			if (flag)
-				continue;
+//			Pattern regxCorsPattern = Pattern.compile(sbPattern.toString());
+//			boolean flag = false;
+//			for (int j = 0; j < i; ++j) {
+//				if (validList[listIndex[j]])
+//					continue;
+//				String fCors = fruItemsList.get(listIndex[j]);
+//				Matcher mp = regxCorsPattern.matcher(fCors);
+//				if (mp.find()) {
+//					flag = true;
+//					validList[listIndex[i]] = true;
+//					break;
+//				}
+//			}
+//			if (flag)
+//				continue;
 
 			sentenceFw.append("---------Pattern---------\n");
 			sentenceFw.append("Supprt: ");
